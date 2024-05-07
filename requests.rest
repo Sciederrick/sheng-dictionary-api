@@ -31,9 +31,9 @@
 # Content-Type: application/json
 
 # # 4.3. Get definitions (paginated)
-# GET http://localhost:3000/api/v1/definitions?page=2&limit=2&comparator=gt&createdAt=1676472140806
+GET http://localhost:3005/api/v1/definitions?page=2&limit=2&comparator=gt&createdAt=1676472140806
 # Authorization: Bearer Dfn.5rtsi98bfq65
-# Content-Type: application/json
+Content-Type: application/json
 
 # Production ------------
 

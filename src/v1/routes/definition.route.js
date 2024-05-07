@@ -7,7 +7,7 @@ const { paginatedResults } = require("../middleware/pagination.middleware");
 const Definition = require("./../../../mongo/models/definitions");
 
 const {
-  createDefinition,
+  createDefinitions,
   getDefinitionById,
   getDefinitionByTitle,
   updateDefinition,
@@ -48,7 +48,11 @@ router
    * @apiSuccess {String} results.exampleUsage=null Example usage of a word or idiom
    * @apiSuccess {String} results.partOfSpeech=null Part of speech of a word definition (i.e., noun, verb, adjective, adverb). Null of its an idiom
    * @apiSuccess {String} results.rarity Rarity of the definition (i.e., common or rare)
-   * @apiSuccess {String} results.spellingVariations=null Spelling variations of the definition. Null if its an idiom
+   * @apiSuccess {String[]} results.spellingVariations=[] Spelling variations of the definition. Null if its an idiom
+   * @apiSuccess {String[]} results.synonyms=[] Synonyms
+   * @apiSuccess {Object} results.pronunciation Word and Audio of the pronunciation if any
+   * @apiSuccess {String} results.pronunciation.word=null Word pronunciation
+   * @apiSuccess {String} results.pronunciation.audio=null URL to the pronunciation audio clip
    * @apiSuccess {String} results.createdAt DateTime ISO 8601 String for database definition creation time
    * @apiSuccess {String} results.updatedAt DateTime ISO 8601 String for database definition update time
    *
@@ -69,8 +73,13 @@ router
    *                "category": "word",
    *                "exampleUsage": "Nitumie ile doh kwa Msape - Send me the money you owe through Mpesa",
    *                "partOfSpeech": "noun",
+   *                "pronunciation": {
+   *                  "audio": "kiungo/hadi/sauti.mp3",
+   *                  "word": "sa-u-ti"
+   *                },
    *                "rarity": "common",
-   *                "spellingVariations": null,
+   *                "spellingVariations": [],
+   *                "synonyms": [],
    *                "createdAt": "2023-02-16T13:11:28.568Z",
    *                "updatedAt": "2023-02-16T13:11:28.568Z",
    *                "__v": 0     *
@@ -85,113 +94,135 @@ router
   });
 
 router
-  .route("/")
-  /**
-   * @api {post} /definitions/ Create Definition
-   * @apiName CreateDefinitions
-   * @apiGroup Definitions
-   * @apiPermission admin
-   *
-   * @apiHeader {String} Authorization Admin's access token
-   * @apiHeaderExample {json} Header-Example:
-   * {
-   *      "Authorization": Bearer Adm.12345
-   * }
-   *
-   * @apiBody {String} title Mandatory title
-   * @apiBody {String} definition Mandatory definition
-   * @apiBody {String} category Mandatory category (word or idiom),
-   * @apiBody {String} partOfSpeech Mandatory part of speech (noun, verb etc),
-   * @apiBody {String} exampleUsage Mandatory example usage,
-   * @apiBody {String} rarity Mandatory rarity (common or rare),
-   * @apiBody {String} [spellingVariations] Optional spelling variations
-   *
-   * @apiSuccess {String} title Mandatory title
-   * @apiSuccess {String} definition Mandatory definition
-   * @apiSuccess {String} category Mandatory category (word or idiom),
-   * @apiSuccess {String} partOfSpeech Mandatory part of speech (noun, verb etc),
-   * @apiSuccess {String} exampleUsage Mandatory example usage,
-   * @apiSuccess {String} rarity Mandatory rarity (common or rare),
-   * @apiSuccess {String} [spellingVariations] Optional spelling variations
-   */
-  .post(/*authenticateApiKey,*/ createDefinition);
+    .route("/")
+    /**
+     * @api {post} /definitions/ Create Definition
+     * @apiName CreateDefinitions
+     * @apiGroup Definitions
+     * @apiPermission admin
+     *
+     * @apiHeader {String} Authorization Admin's access token
+     * @apiHeaderExample {json} Header-Example:
+     * {
+     *      "Authorization": Bearer Adm.12345
+     * }
+     *
+     * @apiBody {Object[]} definition List of definitions
+     * @apiBody {String} definition.title Mandatory title
+     * @apiBody {String} definition.definition Mandatory definition
+     * @apiBody {String} definition.category Mandatory category (word or idiom),
+     * @apiBody {String} definition.partOfSpeech Mandatory part of speech (noun, verb etc),
+     * @apiBody {Object} definition.[pronunciation] Word and Audio of the pronunciation if any
+     * @apiBody {String} definition.pronunciation.word=null Word pronunciation
+     * @apiBody {String} definition.pronunciation.audio=null URL to the pronunciation audio clip
+     * @apiBody {String} definition.exampleUsage Mandatory example usage,
+     * @apiBody {String} definition.rarity Mandatory rarity (common, rare or unknown),
+     * @apiBody {String[]} definition.[spellingVariations] Optional spelling variations
+     * @apiBody {String[]} definition.[synonyms] Synonyms
+     *
+     * @apiSuccess {Object[]} definition List of definitions
+     * @apiSuccess {String} definition.title Mandatory title
+     * @apiSuccess {String} definition.definition Mandatory definition
+     * @apiSuccess {String} definition.category Mandatory category (word or idiom),
+     * @apiSuccess {String} definition.partOfSpeech Mandatory part of speech (noun, verb etc),
+     * @apiSuccess {Object} definition.pronunciation Word and Audio of the pronunciation if any
+     * @apiSuccess {String} definition.pronunciation.word=null Word pronunciation
+     * @apiSuccess {String} definition.pronunciation.audio=null URL to the pronunciation audio clip
+     * @apiSuccess {String} definition.exampleUsage Mandatory example usage,
+     * @apiSuccess {String} definition.rarity Mandatory rarity (common, rare or unknown),
+     * @apiSuccess {String[]} definition.spellingVariations=[] Optional spelling variations
+     * @apiSuccess {String[]} definition.synonyms=[] Synonyms
+     */
+    .post(/*authenticateApiKey,*/ createDefinitions);
 
 router
-  .route("/:title")
-  /**
-   * @api {get} /definitions/:title Get definition by title
-   * @apiName GetDefinitionByTitle
-   * @apiGroup Definitions
-   * @apiPermission admin
-   *
-   * @apiHeader {String} Authorization Admin's access token
-   * @apiHeaderExample {json} Header-Example:
-   * {
-   *      "Authorization": Bearer Adm.12345
-   * }
-   *
-   * @apiParam {String} title Mandatory title
-   *
-   * @apiSuccess {String} title Mandatory title
-   * @apiSuccess {String} definition Mandatory definition
-   * @apiSuccess {String} category Mandatory category (word or idiom),
-   * @apiSuccess {String} partOfSpeech Mandatory part of speech (noun, verb etc),
-   * @apiSuccess {String} exampleUsage Mandatory example usage,
-   * @apiSuccess {String} rarity Mandatory rarity (common or rare),
-   * @apiSuccess {String} [spellingVariations] Optional spelling variations
-   */
-  .get(/*authenticateApiKey,*/ getDefinitionByTitle);
+    .route("/:title")
+    /**
+     * @api {get} /definitions/:title Get definition by title
+     * @apiName GetDefinitionByTitle
+     * @apiGroup Definitions
+     * @apiPermission admin
+     *
+     * @apiHeader {String} Authorization Admin's access token
+     * @apiHeaderExample {json} Header-Example:
+     * {
+     *      "Authorization": Bearer Adm.12345
+     * }
+     *
+     * @apiParam {String} title Mandatory title
+     *
+     * @apiSuccess {String} title Mandatory title
+     * @apiSuccess {String} definition Mandatory definition
+     * @apiSuccess {String} category Mandatory category (word or idiom),
+     * @apiSuccess {String} partOfSpeech Mandatory part of speech (noun, verb etc),
+     * @apiSuccess {Object} pronunciation Word and Audio of the pronunciation if any
+     * @apiSuccess {String} pronunciation.word=null Word pronunciation
+     * @apiSuccess {String} pronunciation.audio=null URL to the pronunciation audio clip
+     * @apiSuccess {String} exampleUsage Mandatory example usage,
+     * @apiSuccess {String} rarity Mandatory rarity (common, rare or unknown),
+     * @apiSuccess {String[]} spellingVariations=[] Optional spelling variations
+     * @apiSuccess {String[]} synonyms=[] Synonyms
+     */
+    .get(/*authenticateApiKey,*/ getDefinitionByTitle);
 
 router
-  .route("/:id")
-  /**
-   * @api {get} /definitions/:id Get definition by id
-   * @apiName GetDefinitionById
-   * @apiGroup Definitions
-   * @apiPermission admin
-   *
-   * @apiHeader {String} Authorization Admin's access token
-   * @apiHeaderExample {json} Header-Example:
-   * {
-   *      "Authorization": Bearer Adm.12345
-   * }
-   *
-   * @apiParam {String} id Mandatory id
-   *
-   * @apiSuccess {String} title Mandatory title
-   * @apiSuccess {String} definition Mandatory definition
-   * @apiSuccess {String} category Mandatory category (word or idiom),
-   * @apiSuccess {String} partOfSpeech Mandatory part of speech (noun, verb etc),
-   * @apiSuccess {String} exampleUsage Mandatory example usage,
-   * @apiSuccess {String} rarity Mandatory rarity (common or rare),
-   * @apiSuccess {String} [spellingVariations] Optional spelling variations
-   */
-  .get(/*authenticateApiKey,*/ getDefinitionById);
+    .route("/:id")
+    /**
+     * @api {get} /definitions/:id Get definition by id
+     * @apiName GetDefinitionById
+     * @apiGroup Definitions
+     * @apiPermission admin
+     *
+     * @apiHeader {String} Authorization Admin's access token
+     * @apiHeaderExample {json} Header-Example:
+     * {
+     *      "Authorization": Bearer Adm.12345
+     * }
+     *
+     * @apiParam {String} id Mandatory id
+     *
+     * @apiSuccess {String} title Mandatory title
+     * @apiSuccess {String} definition Mandatory definition
+     * @apiSuccess {String} category Mandatory category (word or idiom),
+     * @apiSuccess {String} partOfSpeech Mandatory part of speech (noun, verb etc),
+     * @apiSuccess {Object} pronunciation Word and Audio of the pronunciation if any
+     * @apiSuccess {String} pronunciation.word=null Word pronunciation
+     * @apiSuccess {String} pronunciation.audio=null URL to the pronunciation audio clip
+     * @apiSuccess {String} exampleUsage Mandatory example usage,
+     * @apiSuccess {String} rarity Mandatory rarity (common, rare or unknown),
+     * @apiSuccess {String[]} spellingVariations Optional spelling variations
+     * @apiSuccess {String[]} synonyms=[] Synonyms
+     */
+    .get(/*authenticateApiKey,*/ getDefinitionById);
 
 router
-  .route("/")
-  /**
-   * @api {put} /definitions/ Update definition
-   * @apiName UpdateDefinition
-   * @apiGroup Definitions
-   * @apiPermission admin
-   *
-   * @apiHeader {String} Authorization Admin's access token
-   * @apiHeaderExample {json} Header-Example:
-   * {
-   *      "Authorization": Bearer Adm.12345
-   * }
-   *
-   * @apiBody {String} title Mandatory title
-   * @apiBody {String} definition Mandatory definition
-   * @apiBody {String} category Mandatory category (word or idiom),
-   * @apiBody {String} partOfSpeech Mandatory part of speech (noun, verb etc),
-   * @apiBody {String} exampleUsage Mandatory example usage,
-   * @apiBody {String} rarity Mandatory rarity (common or rare),
-   * @apiBody {String} [spellingVariations] Optional spelling variations
-   *
-   */
-  .put(/*authenticateApiKey,*/ updateDefinition);
+    .route("/")
+    /**
+     * @api {put} /definitions/ Update definition
+     * @apiName UpdateDefinition
+     * @apiGroup Definitions
+     * @apiPermission admin
+     *
+     * @apiHeader {String} Authorization Admin's access token
+     * @apiHeaderExample {json} Header-Example:
+     * {
+     *      "Authorization": Bearer Adm.12345
+     * }
+     *
+     * @apiBody {String} title Mandatory title
+     * @apiBody {String} definition Mandatory definition
+     * @apiBody {String} category Mandatory category (word or idiom),
+     * @apiBody {String} partOfSpeech Mandatory part of speech (noun, verb etc),
+     * @apiBody {Object} [pronunciation] Word and Audio of the pronunciation if any
+     * @apiBody {String} pronunciation.word=null Word pronunciation
+     * @apiBody {String} pronunciation.audio=null URL to the pronunciation audio clip
+     * @apiBody {String} exampleUsage Mandatory example usage,
+     * @apiBody {String} rarity Mandatory rarity (common, rare, unknown),
+     * @apiBody {String[]} [spellingVariations=[]] Optional spelling variations
+     * @apiBody {String[]} [synonyms=[]] Synonyms
+     *
+     */
+    .put(/*authenticateApiKey,*/ updateDefinition);
 
 router
   .route("/:id")

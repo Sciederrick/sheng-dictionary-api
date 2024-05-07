@@ -9,7 +9,7 @@ const v1Routes = require('./src/v1/routes');
 app.use(express.static('public'))
 app.use("/docs", express.static('doc'))
 app.use(cors());
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '2gb' }));
 app.use(
   bodyParser.urlencoded({
     extended: true,

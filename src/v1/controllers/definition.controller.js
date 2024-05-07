@@ -1,24 +1,25 @@
 const {
-  validateCreate,
+  validateInsertMany,
   validateGetByTitle,
   validateGetById,
 } = require("../validate/definition.validate");
 
+const Definition = require("../../../mongo/models/definitions");
 const controller = {};
 
-controller.createDefinition = async (req, res) => {
+controller.createDefinitions = async (req, res) => {
   try {
-    if (!validateCreate(req.body)) {
+    if (!validateInsertMany(req.body)) {
       return res.status(400).json({ message: "Invalid fields", status: 400 });
     }
 
-    const newDefinition = await Definition.create(req.body);
-    return res.status(201).json(newDefinition);
+    const insertedDocs = await Definition.insertMany(req.body);
+    return res.status(201).json(insertedDocs);
   } catch (err) {
     console.error(err);
     return res
-      .status(500)
-      .json({ message: "Something went wrong", status: 500 });
+      .status(err.response?.status || 500)
+      .json({ message: err.message || "Something went wrong", status: 500 });
   }
 };
 
@@ -64,7 +65,7 @@ controller.getDefinitionById = async (req, res) => {
 
 controller.updateDefinition = async (req, res) => {
   try {
-    if (!validateCreate(req.body)) {
+    if (!validateInsertMany(req.body)) {
       return res.status(400).json({ message: "Invalid fields", status: 400 });
     }
 

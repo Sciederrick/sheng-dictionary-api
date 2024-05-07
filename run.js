@@ -11,6 +11,7 @@ if (result.error) {
 //  Start the database
 db.init(() => {
    // Start the server
+   // @ts-ignore
    app.listen(port, () => {
       console.log('\x1b[35m%s\x1b[0m',`Server listening on: http://localhost:${port}`);
    });
