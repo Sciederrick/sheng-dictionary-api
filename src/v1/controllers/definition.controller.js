@@ -2,9 +2,11 @@ const {
   validateInsertMany,
   validateGetByTitle,
   validateGetById,
+  validateDeleteDefinitions,
 } = require("../validate/definition.validate");
 
 const Definition = require("../../../mongo/models/definitions");
+const { default: mongoose } = require("mongoose");
 const controller = {};
 
 controller.createDefinitions = async (req, res) => {
@@ -104,6 +106,31 @@ controller.deleteDefinition = async (req, res) => {
       .status(500)
       .json({ message: "Something went wrong", status: 500 });
   }
+};
+
+controller.deleteDefinitions = async (req, res) => {
+    try {
+        const deleteIds = validateDeleteDefinitions(req.body);
+        console.log("🚀 ~ controller.deleteDefinitions ~ deleteIds:", deleteIds)
+        if (deleteIds.length === 0)
+            return res.status(400).json({ message: "Invalid ids", status: 400 });
+        
+        const bulkOps = deleteIds.map((id) => ({
+            deleteOne: { filter: { _id: id } },
+        }));
+
+        const resp = await Definition.bulkWrite(bulkOps)
+        console.log("🚀 ~ controller.deleteDefinitions ~ resp:", resp)
+        
+        return res
+            .status(200)
+            .json({ message: "Definition deleted successfully", status: 200 });
+    } catch (err) {
+        console.error(err);
+        return res
+            .status(500)
+            .json({ message: "Something went wrong", status: 500 });
+    }
 };
 
 module.exports = controller;

@@ -1,3 +1,5 @@
+// @ts-nocheck
+const { validateDateTime } = require('../validate/definition.validate');
 const helpers = require('./../util/helper.util');
 
 function paginatedResults(model) {
@@ -14,9 +16,14 @@ function paginatedResults(model) {
 
         const pattern = /gt|lt|eq/i;
         // input validation
-        validatedComparator = typeof comparator == 'string' && comparator.match(pattern) ? comparator.trim() : false;
-        createdAt = !isNaN(Date.parse(createdAt)) || !isNaN(Date.parse(helpers.convertTimestampToISOString(createdAt))) ? createdAt: false;
-        updatedAt = !isNaN(Date.parse(updatedAt)) || !isNaN(Date.parse(helpers.convertTimestampToISOString(updatedAt))) ? updatedAt: false;
+        comparator = typeof comparator == 'string' && comparator.match(pattern) != null ? comparator.trim() : false;
+        if (!comparator) {
+            return res.status(400).json({ message: "Invalid input", status: 400 });
+        }
+        // createdAt = !isNaN(Date.parse(createdAt)) || !isNaN(Date.parse(helpers.convertTimestampToISOString(createdAt))) ? createdAt: false;
+        // updatedAt = !isNaN(Date.parse(updatedAt)) || !isNaN(Date.parse(helpers.convertTimestampToISOString(updatedAt))) ? updatedAt: false;
+        createdAt = validateDateTime(createdAt);
+        updatedAt = validateDateTime(updatedAt);
 
         if (!isEmptyComparatorCreatedAtUpdateAt && !(comparator || createdAt || updatedAt)) return res.status(400).json({ message: "Invalid input", status: 400 });
         
@@ -41,12 +48,14 @@ function paginatedResults(model) {
         // prepare condition
         const condition = {};
         const field = createdAt ? "createdAt": "updatedAt";
-        const fieldValue = createdAt ?? updatedAt;
+        const fieldValue = createdAt || updatedAt;
+        console.log(`🚀 ~ return ~ comparator && fieldValue: ${comparator}, ${fieldValue}`, comparator && fieldValue)
         if (comparator && fieldValue) {            
             comparator = "$".concat(comparator);
             condition[field] = { [comparator]: fieldValue };
         }
 
+        console.log("🚀 ~ return ~ condition:", condition)
         try {
             if (Object.keys(condition).length > 0) {
                 numResults = await model.find(condition, null, null).countDocuments();

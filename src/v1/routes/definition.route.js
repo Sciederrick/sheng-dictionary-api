@@ -12,6 +12,7 @@ const {
   getDefinitionByTitle,
   updateDefinition,
   deleteDefinition,
+  deleteDefinitions,
 } = require("./../../v1/controllers/definition.controller");
 
 router
@@ -241,5 +242,23 @@ router
    * @apiParam {String} id Mandatory definition id
    */
   .delete(/*authenticateApiKey,*/ deleteDefinition);
+
+router
+    .route("/bulk/delete")
+    /**
+     * @api {delete} /definitions/bulk/delete Delete definitions
+     * @apiName DeleteDefinitions
+     * @apiGroup Definitions
+     * @apiPermission admin
+     *
+     * @apiHeader {String} Authorization Admin's access token
+     * @apiHeaderExample {json} Header-Example:
+     * {
+     *      "Authorization": Bearer Adm.12345
+     * }
+     *
+     * @apiBody {String[]} ids Mandatory ids
+     */
+    .post(/*authenticateApiKey,*/ deleteDefinitions);
 
 module.exports = router;

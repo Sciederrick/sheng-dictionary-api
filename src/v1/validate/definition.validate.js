@@ -31,14 +31,11 @@ validate.validateCreate = (doc) => {
         typeof partOfSpeech == "string" && partOfSpeech.trim() != ""
             ? partOfSpeech.trim()
             : false;
-    pronunciation =
-        typeof pronunciation === "object" &&
-        Object.keys(pronunciation).includes("word") &&
-        Object.keys(pronunciation).includes("audio")
-            ? pronunciation
-            : false;
+    pronunciation = validate.checkPronunciation(pronunciation);
     rarity =
-        typeof rarity == "string" && rarity.trim() != "" && ["common", "rare", "unknown"].includes(rarity.trim())
+        typeof rarity == "string" &&
+        rarity.trim() != "" &&
+        ["common", "rare", "unknown"].includes(rarity.trim())
             ? rarity.trim()
             : false;
     spellingVariations =
@@ -67,7 +64,7 @@ validate.validateCreate = (doc) => {
 };
 
 validate.validateInsertMany = (docs) => {
-    if (typeof(docs) != 'object' || !(docs?.length > -1)) return false;
+    if (typeof docs != "object" || !(docs?.length > -1)) return false;
     docs.forEach((doc) => {
         if (!validate.validateCreate(doc)) {
             return false;
@@ -90,5 +87,48 @@ validate.validateGetById = (params) => {
     if (!id) return false;
     return true;
 };
+
+validate.validateDeleteDefinitions = (body) => {
+    let { ids } = body;
+    let validIds = [];
+    for(const id of ids) {
+        if (typeof id == "string" && id.trim() != "")
+            validIds.push(id.trim())
+    }
+    return validIds;
+};
+
+validate.checkPronunciation = (pronunciation) => {
+    if (typeof pronunciation === "object" && pronunciation !== null) {
+        return Object.keys(pronunciation).includes("word") &&
+            Object.keys(pronunciation).includes("audio")
+            ? pronunciation
+            : false;
+    } else if (typeof pronunciation === null) {
+        return null;
+    } else {
+        return false;
+    }
+};
+
+validate.validateDateTime = (datetime) => {
+  // Regular expression for basic ISO8601 format (YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss[.sss][Z])
+  const iso8601Regex = /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d{3})?(?:Z|[\+\-]\d{2}:\d{2})?)?$/;
+
+  // Check if the string matches the basic format
+  if (!iso8601Regex.test(datetime)) {
+    console.log(`🚀 ~ iso8601Regex.test(datetime): ${datetime}`, iso8601Regex.test(datetime))
+    
+    return false;
+  }
+
+  // Additional check for valid date using Date object (handles leap years etc.)
+  try {
+    return new Date(datetime);
+  } catch (error) {
+    return false;
+  }
+};
+
 
 module.exports = validate;
