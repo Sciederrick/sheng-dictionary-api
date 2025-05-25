@@ -5,7 +5,7 @@ const db = {}
 
 db.init = async(callback) => {
   try {
-    const MONGO_URI = `${process.env.MONGO_URL}`
+    const MONGO_URI = `${process.env.MONGO_URI}`
     await connect(MONGO_URI);
     console.log('\x1b[35m%s\x1b[0m', 'Status 200 => OK[mongoDB]');
     callback();
