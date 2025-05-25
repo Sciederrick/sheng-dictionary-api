@@ -17,9 +17,9 @@ function paginatedResults(model) {
         const pattern = /gt|lt|eq/i;
         // input validation
         comparator = typeof comparator == 'string' && comparator.match(pattern) != null ? comparator.trim() : false;
-        if (!comparator) {
-            return res.status(400).json({ message: "Invalid input", status: 400 });
-        }
+        // if (!comparator) {
+        //     return res.status(400).json({ message: "Invalid input", status: 400 });
+        // }
         // createdAt = !isNaN(Date.parse(createdAt)) || !isNaN(Date.parse(helpers.convertTimestampToISOString(createdAt))) ? createdAt: false;
         // updatedAt = !isNaN(Date.parse(updatedAt)) || !isNaN(Date.parse(helpers.convertTimestampToISOString(updatedAt))) ? updatedAt: false;
         createdAt = validateDateTime(createdAt);

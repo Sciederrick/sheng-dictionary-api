@@ -12,7 +12,7 @@ if (result.error) {
 db.init(() => {
    // Start the server
    // @ts-ignore
-   app.listen(port, () => {
+   app.listen(port, "0.0.0.0", () => {
       console.log('\x1b[35m%s\x1b[0m',`Server listening on: http://localhost:${port}`);
    });
 });
