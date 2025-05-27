@@ -9,6 +9,7 @@ function paginatedResults(model) {
         let comparator = req.query.comparator;
         let createdAt = req.query.createdAt;
         let updatedAt = req.query.updatedAt;
+		const search = req.query.search;
         
         const isEmptyComparatorCreatedAtUpdateAt = (comparator == null || comparator == undefined) && 
             (createdAt == null || createdAt == undefined) && 
@@ -17,11 +18,6 @@ function paginatedResults(model) {
         const pattern = /gt|lt|eq/i;
         // input validation
         comparator = typeof comparator == 'string' && comparator.match(pattern) != null ? comparator.trim() : false;
-        // if (!comparator) {
-        //     return res.status(400).json({ message: "Invalid input", status: 400 });
-        // }
-        // createdAt = !isNaN(Date.parse(createdAt)) || !isNaN(Date.parse(helpers.convertTimestampToISOString(createdAt))) ? createdAt: false;
-        // updatedAt = !isNaN(Date.parse(updatedAt)) || !isNaN(Date.parse(helpers.convertTimestampToISOString(updatedAt))) ? updatedAt: false;
         createdAt = validateDateTime(createdAt);
         updatedAt = validateDateTime(updatedAt);
 
@@ -49,13 +45,19 @@ function paginatedResults(model) {
         const condition = {};
         const field = createdAt ? "createdAt": "updatedAt";
         const fieldValue = createdAt || updatedAt;
-        console.log(`🚀 ~ return ~ comparator && fieldValue: ${comparator}, ${fieldValue}`, comparator && fieldValue)
         if (comparator && fieldValue) {            
             comparator = "$".concat(comparator);
             condition[field] = { [comparator]: fieldValue };
         }
 
-        console.log("🚀 ~ return ~ condition:", condition)
+		// add search support
+		if (search && typeof search === "string" && search.trim().length > 0) {
+			const searchRegex = new RegExp(search.trim(), "i");
+			condition.$or = [
+				{ title: searchRegex }
+			]
+		}
+
         try {
             if (Object.keys(condition).length > 0) {
                 numResults = await model.find(condition, null, null).countDocuments();

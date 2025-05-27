@@ -30,6 +30,8 @@ router
    * }
    *
    * @apiQuery {Number} page=1 Page number.
+   * @apiQuery {Number} limit=50 Page size.
+   * @apiQuery {String} search=Biz Search term
    * @apiQuery {String} comparator=null Comparator for fetching definitions of a specified date range
    * @apiQuery {String} createdAt=null ISO 8601 DateTime String for fetching definitions of a specified range, definitions filtered according to `comparator` and `createdAt` queries
    * @apiQuery {String} updatedAt=null ISO 8601 DateTime String for fetching definitions of a specified range, definitions filtered according to `comparator` and `updatedAt` queries
