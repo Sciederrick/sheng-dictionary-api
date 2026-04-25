@@ -1,7 +1,7 @@
 const validate = {};
 
 validate.validateCreate = (doc) => {
-    if (Object.keys(doc).length != 7) return false;
+	if (!(Object.keys(doc).length >= 7)) return false;
     let {
         title,
         definition,
@@ -45,19 +45,17 @@ validate.validateCreate = (doc) => {
     synonyms =
         typeof synonyms == "object" && synonyms?.length > -1 ? synonyms : false;
 
-    if (
-        !(
-            title &&
-            definition &&
-            category &&
-            exampleUsage &&
-            partOfSpeech &&
-            rarity &&
-            spellingVariations != false &&
-            pronunciation != false &&
-            synonyms != false
-        )
-    ) {
+    if (!(
+		!!title &&
+		!!definition &&
+		!!category &&
+		!!exampleUsage &&
+		!!partOfSpeech &&
+		!!rarity &&
+		!!spellingVariations &&
+		!!pronunciation &&
+		!!synonyms
+    )) {
         return false;
     }
     return true;

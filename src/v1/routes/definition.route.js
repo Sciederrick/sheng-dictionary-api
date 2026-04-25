@@ -200,9 +200,9 @@ router
     .get(/*authenticateApiKey,*/ getDefinitionById);
 
 router
-    .route("/")
+    .route("/:id")
     /**
-     * @api {put} /definitions/ Update definition
+     * @api {put} /definitions/:id Update definition
      * @apiName UpdateDefinition
      * @apiGroup Definitions
      * @apiPermission admin
@@ -213,6 +213,8 @@ router
      *      "Authorization": Bearer Adm.12345
      * }
      *
+     * @apiParam {String} id Mandatory id
+	 * 
      * @apiBody {String} title Mandatory title
      * @apiBody {String} definition Mandatory definition
      * @apiBody {String} category Mandatory category (word or idiom),

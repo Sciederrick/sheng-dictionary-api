@@ -3,6 +3,7 @@ const {
   validateGetByTitle,
   validateGetById,
   validateDeleteDefinitions,
+  validateCreate,
 } = require("../validate/definition.validate");
 
 const Definition = require("../../../mongo/models/definitions");
@@ -67,14 +68,17 @@ controller.getDefinitionById = async (req, res) => {
 
 controller.updateDefinition = async (req, res) => {
   try {
-    if (!validateInsertMany(req.body)) {
-      return res.status(400).json({ message: "Invalid fields", status: 400 });
+	if (!validateGetById(req.params)) {
+		return res.status(400).json({ message: "Invalid id", status: 400 });
+	}
+    if (!validateCreate(req.body)) {
+		return res.status(400).json({ message: "Invalid fields", status: 400 });
     }
 
     const updatedDefinition = await Definition.findOneAndUpdate(
-      { _id: req.body.id.trim() },
-      req.body,
-      { new: true }
+        { _id: req.params.id.trim() },
+        req.body,
+        { new: true },
     );
     if (!updatedDefinition)
       return res
